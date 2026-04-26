@@ -4,11 +4,9 @@ import androidx.annotation.Keep
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.QuestionMark
 import androidx.compose.material.icons.outlined.Settings
 import androidx.navigation3.runtime.NavKey
 import com.zaneschepke.wireguardautotunnel.R
@@ -93,14 +91,7 @@ enum class Tab(
 ) {
     TUNNELS(Route.Tunnels, R.string.tunnels, Icons.Outlined.Home, Icons.Filled.Home, 0),
     AUTOTUNNEL(Route.AutoTunnel, R.string.auto_tunnel, Icons.Outlined.Bolt, Icons.Filled.Bolt, 1),
-    SETTINGS(Route.Settings, R.string.settings, Icons.Outlined.Settings, Icons.Filled.Settings, 2),
-    SUPPORT(
-        Route.Support,
-        R.string.support,
-        Icons.Outlined.QuestionMark,
-        Icons.Filled.QuestionMark,
-        3,
-    );
+    SETTINGS(Route.Settings, R.string.settings, Icons.Outlined.Settings, Icons.Filled.Settings, 2);
 
     companion object {
         fun fromRoute(route: Route): Tab =
@@ -129,11 +120,11 @@ enum class Tab(
                 Route.Display,
                 Route.PingTarget,
                 is Route.ConfigGlobal,
-                Route.Logs -> SETTINGS
+                Route.Logs,
                 is Route.Support,
                 Route.License,
                 Route.Donate,
-                Route.Addresses -> SUPPORT
+                Route.Addresses -> SETTINGS
             }
     }
 }
