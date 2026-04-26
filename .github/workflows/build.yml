@@ -84,6 +84,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Decode Keystore
+        if: ${{ inputs.build_type != 'debug' }}
         id: decode_keystore
         uses: timheuer/base64-to-file@v1.2
         with:
@@ -95,7 +96,6 @@ jobs:
         run: |
           store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
           echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
-
       - name: Build APK
         run: |
           flavor=${{ inputs.flavor }}
