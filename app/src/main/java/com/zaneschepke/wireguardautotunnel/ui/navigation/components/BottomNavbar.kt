@@ -31,6 +31,7 @@ fun BottomNavbar(isAutoTunnelActive: Boolean, currentTab: Tab, onTabSelected: (T
             val arrangement = BottomAppBarDefaults.FlexibleFixedHorizontalArrangement
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = arrangement) {
                 Tab.entries.forEach { tab ->
+                    if (tab == Tab.SUPPORT) return@forEach
                     val interactionSource = remember { MutableInteractionSource() }
                     val isSelected = currentTab == tab
                     val hasBadge = tab == Tab.AUTOTUNNEL && isAutoTunnelActive
