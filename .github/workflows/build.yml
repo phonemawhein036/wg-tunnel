@@ -9,7 +9,7 @@ on:
         type: choice
         description: "Build type"
         required: true
-        default: debug
+        default: release
         options:
           - debug
           - nightly
@@ -39,7 +39,7 @@ on:
         type: string
         description: "Build type"
         required: true
-        default: debug
+        default: release
       flavor:
         type: string
         description: "Product flavor"
@@ -64,9 +64,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-      SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-      SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+      SIGNING_KEY_ALIAS: my-key
+      SIGNING_KEY_PASSWORD: mypassword
+      SIGNING_STORE_PASSWORD: mypassword
       KEY_STORE_FILE: 'android_keystore.jks'
       KEY_STORE_LOCATION: ${{ github.workspace }}/app/keystore/
     outputs:
@@ -83,14 +83,18 @@ jobs:
           cache: gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Decode Keystore
-        if: ${{ inputs.build_type != 'debug' }}
-        id: decode_keystore
-        uses: timheuer/base64-to-file@v1.2
-        with:
-          fileName: ${{ env.KEY_STORE_FILE }}
-          fileDir: ${{ env.KEY_STORE_LOCATION }}
-          encodedString: ${{ secrets.KEYSTORE }}
+      - name: Generate Keystore
+        run: |
+          mkdir -p ${{ github.workspace }}/app/keystore/
+          keytool -genkeypair \
+            -alias my-key \
+            -keypass mypassword \
+            -keystore ${{ github.workspace }}/app/keystore/android_keystore.jks \
+            -storepass mypassword \
+            -dname "CN=Phoenix, O=Phoenix, C=US" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 9125
       - name: Create keystore path env var
         if: ${{ inputs.build_type != 'debug' }}
         run: |
