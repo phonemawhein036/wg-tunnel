@@ -1,7 +1,5 @@
 package com.zaneschepke.wireguardautotunnel.ui.screens.tunnels
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,30 +11,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zaneschepke.wireguardautotunnel.R
-import com.zaneschepke.wireguardautotunnel.ui.LocalNavController
 import com.zaneschepke.wireguardautotunnel.ui.common.dialog.InfoDialog
-import com.zaneschepke.wireguardautotunnel.ui.common.functions.rememberClipboardHelper
-import com.zaneschepke.wireguardautotunnel.ui.common.functions.rememberFileImportLauncherForResult
 import com.zaneschepke.wireguardautotunnel.ui.navigation.Route
 import com.zaneschepke.wireguardautotunnel.ui.screens.tunnels.components.ExportTunnelsBottomSheet
 import com.zaneschepke.wireguardautotunnel.ui.screens.tunnels.components.TunnelImportSheet
 import com.zaneschepke.wireguardautotunnel.ui.screens.tunnels.components.TunnelList
 import com.zaneschepke.wireguardautotunnel.ui.screens.tunnels.components.UrlImportDialog
 import com.zaneschepke.wireguardautotunnel.ui.sideeffect.LocalSideEffect
-import com.zaneschepke.wireguardautotunnel.util.FileUtils
-import com.zaneschepke.wireguardautotunnel.util.StringValue
 import com.zaneschepke.wireguardautotunnel.viewmodel.SharedAppViewModel
-import io.github.g00fy2.quickie.QRResult
-import io.github.g00fy2.quickie.ScanQRCode
 import org.koin.compose.viewmodel.koinActivityViewModel
 import org.orbitmvi.orbit.compose.collectSideEffect
-import timber.log.Timber
 
 @Composable
 fun TunnelsScreen(sharedViewModel: SharedAppViewModel = koinActivityViewModel()) {
-    val navController = LocalNavController.current
-    val clipboard = rememberClipboardHelper()
-
     val uiState by sharedViewModel.tunnelsUiState.collectAsStateWithLifecycle()
 
     if (uiState.isLoading) return
@@ -56,49 +43,6 @@ fun TunnelsScreen(sharedViewModel: SharedAppViewModel = koinActivityViewModel())
             else -> Unit
         }
     }
-
-    val tunnelFileImportResultLauncher =
-        rememberFileImportLauncherForResult(
-            onNoFileExplorer = {
-                sharedViewModel.showSnackMessage(
-                    StringValue.StringResource(R.string.error_no_file_explorer)
-                )
-            },
-            onData = { data -> sharedViewModel.importFromUri(data) },
-        )
-
-    val scanQrCodeLauncher =
-        rememberLauncherForActivityResult(ScanQRCode()) { result ->
-            when (result) {
-                is QRResult.QRError -> {
-                    Timber.e(result.exception, "QR Code")
-                }
-                QRResult.QRMissingPermission -> {
-                    sharedViewModel.showSnackMessage(
-                        StringValue.StringResource(R.string.camera_permission_required)
-                    )
-                }
-                is QRResult.QRSuccess -> {
-                    result.content.rawValue?.let { sharedViewModel.importFromQr(it) }
-                        ?: sharedViewModel.showSnackMessage(
-                            StringValue.StringResource(R.string.config_error)
-                        )
-                }
-                QRResult.QRUserCanceled -> Unit
-            }
-        }
-
-    val requestPermissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted
-            ->
-            if (!isGranted) {
-                sharedViewModel.showSnackMessage(
-                    StringValue.StringResource(R.string.camera_permission_required)
-                )
-                return@rememberLauncherForActivityResult
-            }
-            scanQrCodeLauncher.launch(null)
-        }
 
     if (showDeleteModal) {
         InfoDialog(
@@ -126,16 +70,6 @@ fun TunnelsScreen(sharedViewModel: SharedAppViewModel = koinActivityViewModel())
     if (showImportSheet) {
         TunnelImportSheet(
             onDismiss = { showImportSheet = false },
-            onFileClick = {
-                tunnelFileImportResultLauncher.launch(FileUtils.ALLOWED_TV_FILE_TYPES)
-            },
-            onQrClick = { requestPermissionLauncher.launch(android.Manifest.permission.CAMERA) },
-            onClipboardClick = {
-                clipboard.paste { result ->
-                    if (result != null) sharedViewModel.importFromClipboard(result)
-                }
-            },
-            onManualImportClick = { navController.push(Route.Config(null)) },
             onUrlClick = { showUrlDialog = true },
         )
     }
