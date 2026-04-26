@@ -12,9 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.zaneschepke.wireguardautotunnel.R
 import com.zaneschepke.wireguardautotunnel.ui.common.dialog.InfoDialog
-import com.zaneschepke.wireguardautotunnel.ui.navigation.Route
 import com.zaneschepke.wireguardautotunnel.ui.screens.tunnels.components.ExportTunnelsBottomSheet
-import com.zaneschepke.wireguardautotunnel.ui.screens.tunnels.components.TunnelImportSheet
 import com.zaneschepke.wireguardautotunnel.ui.screens.tunnels.components.TunnelList
 import com.zaneschepke.wireguardautotunnel.ui.screens.tunnels.components.UrlImportDialog
 import com.zaneschepke.wireguardautotunnel.ui.sideeffect.LocalSideEffect
@@ -29,13 +27,12 @@ fun TunnelsScreen(sharedViewModel: SharedAppViewModel = koinActivityViewModel())
     if (uiState.isLoading) return
 
     var showExportSheet by rememberSaveable { mutableStateOf(false) }
-    var showImportSheet by rememberSaveable { mutableStateOf(false) }
     var showDeleteModal by rememberSaveable { mutableStateOf(false) }
     var showUrlDialog by rememberSaveable { mutableStateOf(false) }
 
     sharedViewModel.collectSideEffect { sideEffect ->
         when (sideEffect) {
-            LocalSideEffect.Sheet.ImportTunnels -> showImportSheet = true
+            LocalSideEffect.Sheet.ImportTunnels -> showUrlDialog = true
             LocalSideEffect.Modal.DeleteTunnels -> showDeleteModal = true
             LocalSideEffect.Sheet.ExportTunnels -> showExportSheet = true
             LocalSideEffect.SelectedTunnels.Copy -> sharedViewModel.copySelectedTunnel()
@@ -65,13 +62,6 @@ fun TunnelsScreen(sharedViewModel: SharedAppViewModel = koinActivityViewModel())
             showExportSheet = false
             sharedViewModel.clearSelectedTunnels()
         }
-    }
-
-    if (showImportSheet) {
-        TunnelImportSheet(
-            onDismiss = { showImportSheet = false },
-            onUrlClick = { showUrlDialog = true },
-        )
     }
 
     if (showUrlDialog) {
